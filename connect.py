@@ -16,7 +16,8 @@ class ConnectFour:
         assert action in self.get_legal_actions(), "action is not legal"
         row = max(np.where(self.board[:, action] == 0)[0])
         self.board[row, action] = self.current_player
-        self.current_player *= -1
+        if not self.get_terminated():
+            self.current_player *= -1
     
     def get_winner(self, player):
         for row in range(self.rows):

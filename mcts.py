@@ -1,5 +1,5 @@
 import numpy as np
-import math
+import math, time
 
 class Node:
 
@@ -46,15 +46,19 @@ class Node:
 
 class TreeSearch:
     
-    def __init__(self, num_searches=1000):
-        self.num_searches = num_searches
+    def __init__(self, time_limit):
+        self.time_limit = time_limit
     
     def search(self, game):
+        start_time = time.process_time()
         root = Node(game)
-        for _ in range(self.num_searches):
+        simulations = 0
+        while time.process_time() - start_time < self.time_limit:
             node = self.select(root)
             value = self.rollout(node.game)
             self.backpropagate(node, value)
+            simulations += 1
+        print(f"Runtime: {time.process_time() - start_time} & Number of Simulations: {simulations}")
         return max(root.children.items(), key=lambda item: item[1].visit_count)[0]
     
     def select(self, node):
@@ -79,7 +83,9 @@ class TreeSearch:
         print("rollout is over but there is no score?")
 
     def backpropagate(self, node, value):
-        while node is not None:
+        while True:
+            if node is None:
+                break
             node.visit_count += 1
             node.node_value += value
             value = -value
