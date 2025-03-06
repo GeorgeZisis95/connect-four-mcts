@@ -5,17 +5,15 @@ class ConnectFour:
     def __init__(self):
         self.rows = 6
         self.columns = 7
-
-    def get_initial_state(self):
-        self.board = np.zeros((self.rows, self.columns))
         self.current_player = 1
+        self.board = np.zeros((self.rows, self.columns))
 
-    def get_legal_moves(self):
+    def get_legal_actions(self):
         """If the top row is empty it's a valid move"""
         return [action for action in range(self.columns) if self.board[0, action] == 0]
 
     def get_next_state(self, action):
-        assert action in self.get_legal_moves(), "action is not legal"
+        assert action in self.get_legal_actions(), "action is not legal"
         row = max(np.where(self.board[:, action] == 0)[0])
         self.board[row, action] = self.current_player
         self.current_player *= -1
@@ -42,8 +40,14 @@ class ConnectFour:
     def get_draw(self):
         return all(self.board[0, column] != 0 for column in range(self.columns))
 
-    def get_terminate(self):
+    def get_terminated(self):
         return self.get_winner(self.current_player) or self.get_draw()
+
+    def copy(self):
+        new_game_object = ConnectFour()
+        new_game_object.board = np.array([row.copy() for row in self.board])
+        new_game_object.player = self.current_player
+        return new_game_object
 
     def render(self):
         print("======================")
@@ -54,13 +58,3 @@ class ConnectFour:
             print("|")
         print("======================")
         print("|0 |1 |2 |3 |4 |5 |6 |")
-
-game = ConnectFour()
-game.get_initial_state()
-while True:
-    if game.get_terminate():
-        print(f"Winner is {game.current_player}")
-        break
-    action = np.random.choice(game.get_legal_moves())
-    game.get_next_state(action)
-    game.render()
