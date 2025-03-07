@@ -3,21 +3,23 @@ import math, time
 
 class Node:
 
-    def __init__(self, game, parent=None):
+    def __init__(self, game, board, player, parent=None):
         self.game = game
+        self.board = board
+        self.player = player
         self.parent = parent
 
         self.children = {}
         self.visit_count = 0
-        self.node_value = 0
+        self.total_value = 0
     
     def is_fully_expanded(self):
-        return len(self.children) == len(self.game.get_legal_actions())
+        return len(self.children) == len(self.game.get_legal_actions(self.board))
     
-    def uct_score(self, child, c_puct=1.41):
+    def uct_score(self, child, c_puct=2):
         if child.visit_count == 0:
             return float('inf')
-        return child.node_value / child.visit_count + c_puct * math.sqrt(math.log(self.visit_count) / child.visit_count)
+        return - child.total_value / child.visit_count + c_puct * math.sqrt(math.log(self.visit_count) / child.visit_count)
     
     def select_child(self):
         best_child = None
@@ -31,62 +33,61 @@ class Node:
         return best_child
     
     def expand(self):
-        legal_actions = self.game.get_legal_actions()
+        # Choose a child node that hasn't been explored yet
+        legal_actions = self.game.get_legal_actions(self.board)
         unexplored_actions = [action for action in legal_actions if action not in self.children]
-        if not unexplored_actions:
-            return None
         action = np.random.choice(unexplored_actions)
-        # Create new game object instead of reference to existing game
-        expanded_game = self.game.copy()
-        expanded_game.get_next_state(action)
-        # Create the new child node and append it to children
-        child_node = Node(expanded_game, parent=self)
+        # Move to the next state
+        expanded_board = np.copy(self.board)
+        expanded_board = self.game.get_next_state(expanded_board, self.player, action)
+        # Save this new state-action pair as a new child and return it
+        child_node = Node(self.game, expanded_board, self.player * -1, parent=self)
         self.children[action] = child_node
         return child_node
+    
+    def __repr__(self):
+        return f"Board: {self.game.render(self.board)} Visits:{self.visit_count} Value: {self.total_value} Parent: {self.parent}"
 
 class TreeSearch:
     
-    def __init__(self, time_limit):
-        self.time_limit = time_limit
-    
-    def search(self, game):
+    def __init__(self, game):
+        self.game = game
+
+    def search(self, board, player, num_searches):
         start_time = time.process_time()
-        root = Node(game)
-        simulations = 0
-        while time.process_time() - start_time < self.time_limit:
+        root = Node(self.game, board, player, parent=None)
+        for _ in range(num_searches):
             node = self.select(root)
-            value = self.rollout(node.game)
+            value = self.rollout(node)
             self.backpropagate(node, value)
-            simulations += 1
-        print(f"Runtime: {time.process_time() - start_time} & Number of Simulations: {simulations}")
+        print(root)
+        print(f"Process time: {time.process_time() - start_time} seconds")
         return max(root.children.items(), key=lambda item: item[1].visit_count)[0]
     
     def select(self, node):
-        while not node.game.get_terminated():
+        while not self.game.get_terminated(node.board, node.player):
             if not node.is_fully_expanded():
                 return node.expand()
+            # If the node is fully expanded move to the node with the highest uct score
             node = node.select_child()
         return node
 
-    def rollout(self, game):
-        # Create new game object instead of reference to existing game
-        rollout_game = game.copy()
-        while not rollout_game.get_terminated():
-            action = np.random.choice(rollout_game.get_legal_actions())
-            rollout_game.get_next_state(action)
-        if rollout_game.get_winner(1):
-            return 1
-        if rollout_game.get_winner(-1):
-            return -1
-        if rollout_game.get_draw():
-            return 0
-        print("rollout is over but there is no score?")
+    def rollout(self, node):
+        if self.game.get_terminated(node.board, node.player):
+            return self.game.get_result(node.board)
+        rollout_player = node.player
+        rollout_board = np.copy(node.board)
+        while True:
+            action = np.random.choice(self.game.get_legal_actions(rollout_board))
+            rollout_board = self.game.get_next_state(rollout_board, rollout_player, action)
+            if self.game.get_terminated(rollout_board, rollout_player):
+                break
+            rollout_player *= -1
+        return self.game.get_result(rollout_board)
 
     def backpropagate(self, node, value):
-        while True:
-            if node is None:
-                break
+        while node is not None:
             node.visit_count += 1
-            node.node_value += value
+            node.total_value += value
             value = -value
             node = node.parent

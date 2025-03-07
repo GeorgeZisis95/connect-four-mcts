@@ -1,18 +1,23 @@
-import numpy as np
 from mcts import TreeSearch
-from connect import ConnectFour
+from connect import ConnectThree
 
-mcts = TreeSearch(time_limit=40)
-game = ConnectFour()
+game = ConnectThree()
+mcts = TreeSearch(game)
 
+board = game.get_initial_state()
+player = 1
 while True:
-    game.render()
-    if game.current_player == 1:
-        action = mcts.search(game)
+    game.render(board)
+    if player == 1:
+        action = mcts.search(board, player, num_searches=10000)
     else:
         action = int(input("Choose your move."))
-    game.get_next_state(action) 
-    if game.get_terminated():
-        print(f"Winner {game.current_player}")
-        game.render()
+    board = game.get_next_state(board, player, action)
+    if game.get_terminated(board, player):
+        if game.get_draw(board, player):
+            print(f"Game is a draw")
+        else:
+            print(f"Winner {player}")
+        game.render(board)
         break
+    player *= -1
