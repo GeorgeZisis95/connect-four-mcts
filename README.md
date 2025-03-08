@@ -2,6 +2,8 @@
 
 This project aims to implement Monte Carlo Tree Search for simple combinatorial games like TicTacToe or ConnectFour. 
 
+### Game Information
+
 By testing Monte Carlo Tree Search in the simple game of Connect Two with a board size of 1x4 I reached the conclusion that the simplicity of the game makes it hard for the developer to diagnose potential issues of the implementation.
 
 On the other hand, classic Connect Four with a board size of 6x7 requires a good amount of time for each move to be calculated which leads to big testing times. Additionally, since my own level of play is not good I cannot successfully deduce if the agent's play is good or if it is a blunder. 
@@ -9,6 +11,8 @@ On the other hand, classic Connect Four with a board size of 6x7 requires a good
 This leads me to create a middle ground game called Connect Three with a board of 4x4. I can easily deduce when the agent makes a blunder and it only takes a few seconds for the agent to make a move of high enough depth.
 
 ## Results
+
+### Connect Three
 
 The first step is creating the game environment. My first approach was to create a class Attribute for both the game board and the current player. With this approach keeping track of the correct board and player proved to be extremely hard since Monte Carlo Tree Search requires a lot of back and forth throughout each simulation.
 
@@ -25,6 +29,16 @@ The Tree Search class implements the selection, rollout and backpropagation stag
 
  The only two hyperparameters are the number of simulations and the c constant for the uct formula. I observe that 10000 simulations are more than enough for Connect Three and I've set the c constant to 2 even though the general consensus is 1.41 because I observed better performance. 
 
+### Connect Four
+
+I didn't have to change anything in my implementation for the agent to play Connect Four. I tested it with the same c constant and a total of 10000 simulations and it plays out at a decent level. It keeps choosing the middle column as its first move which is a great sign, since it is mathematically proven to be the best opening in the game. 
+
 ## Requirements
 
 There are no special requirements for vanilla Monte Carlo Tree Search. I've built the entire project using just Python and the Numpy Library.
+
+## Future Improvements
+
+- Run simulations in parallel to reduce search time.
+- Replace rollout stage with a neural network.
+- Create minimax tree search to compare the agents.
