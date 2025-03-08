@@ -1,5 +1,5 @@
 import numpy as np
-import math, time
+import math
 
 class Node:
 
@@ -31,22 +31,6 @@ class Node:
                 best_score = score
                 best_child = child
         return best_child
-    
-    def expand(self):
-        # Choose a child node that hasn't been explored yet
-        legal_actions = self.game.get_legal_actions(self.board)
-        unexplored_actions = [action for action in legal_actions if action not in self.children]
-        action = np.random.choice(unexplored_actions)
-        # Move to the next state
-        expanded_board = np.copy(self.board)
-        expanded_board = self.game.get_next_state(expanded_board, self.player, action)
-        # Save this new state-action pair as a new child and return it
-        child_node = Node(self.game, expanded_board, self.player * -1, parent=self)
-        self.children[action] = child_node
-        return child_node
-    
-    def __repr__(self):
-        return f"Board: {self.game.render(self.board)} Visits:{self.visit_count} Value: {self.total_value} Parent: {self.parent}"
 
 class TreeSearch:
     
@@ -54,24 +38,34 @@ class TreeSearch:
         self.game = game
 
     def search(self, board, player, num_searches):
-        start_time = time.process_time()
         root = Node(self.game, board, player, parent=None)
         for _ in range(num_searches):
             node = self.select(root)
             value = self.rollout(node)
             self.backpropagate(node, value)
-        print(root)
-        print(f"Process time: {time.process_time() - start_time} seconds")
         return max(root.children.items(), key=lambda item: item[1].visit_count)[0]
     
     def select(self, node):
         while not self.game.get_terminated(node.board, node.player):
             if not node.is_fully_expanded():
-                return node.expand()
+                return self.expand(node)
             # If the node is fully expanded move to the node with the highest uct score
             node = node.select_child()
         return node
 
+    def expand(self, node):
+        # Choose a child node that hasn't been explored yet
+        legal_actions = self.game.get_legal_actions(node.board)
+        unexplored_actions = [action for action in legal_actions if action not in node.children]
+        action = np.random.choice(unexplored_actions)
+        # Move to the next state
+        expanded_board = np.copy(node.board)
+        expanded_board = self.game.get_next_state(expanded_board, node.player, action)
+        # Save this new state-action pair as a new child and return it
+        child_node = Node(self.game, expanded_board, node.player * -1, parent=node)
+        node.children[action] = child_node
+        return child_node
+    
     def rollout(self, node):
         if self.game.get_terminated(node.board, node.player):
             return self.game.get_result(node.board)

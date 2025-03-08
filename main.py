@@ -1,8 +1,13 @@
-from mcts import TreeSearch
-from connect import ConnectFour
+from Games.connect4 import ConnectFour
+from Games.connect3 import ConnectThree
+from Models.model import ConvModel
+from Searches.mcts import TreeSearch
+from Searches.alpha import AlphaTreeSearch
 
 game = ConnectFour()
 mcts = TreeSearch(game)
+model = ConvModel(input_channels=1, kernels=3, total_actions=4)
+alpha = AlphaTreeSearch(game, model)
 
 board = game.get_initial_state()
 player = 1
