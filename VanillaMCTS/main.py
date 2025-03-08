@@ -1,7 +1,7 @@
 from mcts import TreeSearch
-from connect import ConnectThree
+from connect import ConnectFour
 
-game = ConnectThree()
+game = ConnectFour()
 mcts = TreeSearch(game)
 
 board = game.get_initial_state()
