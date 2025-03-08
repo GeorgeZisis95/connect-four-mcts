@@ -12,26 +12,32 @@ This leads me to create a middle ground game called Connect Three with a board o
 
 ## Results
 
-### Connect Three
+### Vanilla Monte Carlo Tree Search
+#### Connect Three
 
 The first step is creating the game environment. My first approach was to create a class Attribute for both the game board and the current player. With this approach keeping track of the correct board and player proved to be extremely hard since Monte Carlo Tree Search requires a lot of back and forth throughout each simulation.
 
 The alternative is much simpler. Inside the game class I create methods that return the valid actions, the state or the winner of the game given the board and the player as parameters. This gives the developer much more control and is much easier to debug than the previous approach.
 
-As for the Tree Search itself, I created a separate Node class which keeps track of each node's board state, the correct player's turn and parent node. It also stores each node's visitation count and value as well as the uct method needed in the selection phase. Last but not least, the Node.expand() method selects an unexplored action from the current node, uses it to create a child node which then is stored to the current node's explored children and is returned for use in the Tree Search.
+As for the Tree Search itself, I created a separate Node class which keeps track of each node's board state, the correct player's turn and parent node. It also stores each node's visitation count and value as well as the uct method needed in the selection phase. 
 
-The Tree Search class implements the selection, rollout and backpropagation stage.
+The Tree Search class implements the selection, expansion, rollout and backpropagation stage.
  - During the selection the agent searches for a leaf node by checking if the current node is not fully expanded. If it is fully expanded it moves to the node with the highest uct score. I found a good exploratory constant(c_puct) for Connect Three to be 2. When a leaf node is reached it is expanded.
+ 
+ - In the expansion phase we select an unexplored action from the current node, use it to create a child node which in turn is stored to the current node's explored children as well as returned for use in the Tree Search.
 
- - After the selection phase the node is passed in the rollout stage. Important here is to check for a terminal node right at the start since a terminal node can be returned from the selection phase. After this, a random game is created and the method returns the reward. A simple mistake that is easily made is to update the player before checking for termination which leads to wrong results.
+ - After the selection and expansion phases the node is passed to the rollout stage. Important here is to check for a terminal node right at the start since a terminal node can be returned from the end of the previous phases. After this, a random game is created and the method returns the reward. A simple mistake that is easily made is to update the player before checking for termination which leads to wrong results.
 
  - The backpropagation phase is recursively updating each node's visit count and total value until the root node is reached. If the player of the node and the result of the game are the same the node's value is incremented by 1 else it is decreased by 1.
 
  The only two hyperparameters are the number of simulations and the c constant for the uct formula. I observe that 10000 simulations are more than enough for Connect Three and I've set the c constant to 2 even though the general consensus is 1.41 because I observed better performance. 
 
-### Connect Four
+#### Connect Four
 
 I didn't have to change anything in my implementation for the agent to play Connect Four. I tested it with the same c constant and a total of 10000 simulations and it plays out at a decent level. It keeps choosing the middle column as its first move which is a great sign, since it is mathematically proven to be the best opening in the game. 
+
+
+### Monte Carlo Tree Search with Neural Networks
 
 ## Requirements
 
@@ -40,5 +46,5 @@ There are no special requirements for vanilla Monte Carlo Tree Search. I've buil
 ## Future Improvements
 
 - Run simulations in parallel to reduce search time.
-- Replace rollout stage with a neural network.
+- Replace rollout stage with a neural network. (in progress)
 - Create minimax tree search to compare the agents.
