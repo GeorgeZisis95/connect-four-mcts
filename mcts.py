@@ -88,6 +88,12 @@ class TreeSearch:
     def backpropagate(self, node, value):
         while node is not None:
             node.visit_count += 1
-            node.total_value += value
-            value = -value
+            if value == 1 and node.player == 1:
+                node.total_value += value
+            elif value == -1 and node.player == 1:
+                node.total_value += -1
+            elif value == 1 and node.player == -1:
+                node.total_value += -1
+            elif value == -1 and node.player == -1:
+                node.total_value += 1
             node = node.parent
