@@ -89,7 +89,7 @@ class TreeSearch:
         while node is not None:
             node.visit_count += 1
             if value == 1 and node.player == 1:
-                node.total_value += value
+                node.total_value += 1
             elif value == -1 and node.player == 1:
                 node.total_value += -1
             elif value == 1 and node.player == -1:
