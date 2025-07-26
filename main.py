@@ -1,8 +1,8 @@
-from Games.connect4 import ConnectFour
-from Games.connect3 import ConnectThree
-from Models.model import ConvModel
-from Searches.mcts import TreeSearch
-from Searches.alpha import AlphaTreeSearch
+from env.connect4 import ConnectFour
+from env.connect3 import ConnectThree
+from model.model import ConvModel
+from search.mcts import TreeSearch
+from search.alpha import AlphaTreeSearch
 
 game = ConnectFour()
 mcts = TreeSearch(game)
